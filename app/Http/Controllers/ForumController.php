@@ -34,28 +34,17 @@ class ForumController extends Controller
      */
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), $this->getValidationAttribute());
+        $this->validateRequest();
+        $user = $this->getAuthUser();
 
-        if($validator->fails()){
-            return response()->json(
-                $validator->messages()
-            );
-        }
-
-        try {
-            $user = auth()->userOrFail();
-        } catch (\Tymon\JWTAuth\Exceptions\UserNotDefinedException $e) {
-            return response()->json([
-                'message' => 'Not authenticated, you have to login first',
-            ]);
-        }
-
-        $data = $user->forums()->create([
-                'title' => request('title'),
-                'body' => request('body'),
-                'slug' => Str::slug(request('title'), '-') . '-' . time(),
-                'category' => request('category'),
+        $user->forums()->create([
+            'title' => request('title'), 
+            'body' => request('body'),
+            'slug' => Str::slug(request('title'), '-') . '-' . time(),
+            'category' =>  request('category')
         ]);
+        
+        return response()->json(['message' => 'Successfully posted']);
 
         // apakah generate token, auto login atau hanya response berhasil
         return response()->json([
@@ -83,29 +72,14 @@ class ForumController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $validator = Validator::make($request->all(), $this->getValidationAttribute());
+        $this->validateRequest();
 
-        if($validator->fails()){
-            return response()->json(
-                $validator->messages()
-            );
-        }
-
-        try {
-            $user = auth()->userOrFail();
-        } catch (\Tymon\JWTAuth\Exceptions\UserNotDefinedException $e) {
-            return response()->json([
-                'message' => 'Not authenticated, you have to login first',
-            ]);
-        }
-
+        $user = $this->getAuthUser();
         $forum = Forum::findOrFail($id);
+
+
         // check ownership
-        if($user->id != $forum->user_id){
-            return response()->json([
-                'message' => 'Not Authorized',
-            ], 403);
-        }
+       $this->checkOwnership($user->id, $forum->user_id);
 
         $forum->update([
                 'title' => request('title'),
@@ -118,16 +92,6 @@ class ForumController extends Controller
         ]);
     }
 
-    private function getValidationAttribute()
-    {
-        return [
-            'title' => 'required|min:5',
-            'body' => 'required|min:10',
-            'category' => 'required',
-        ];
-
-    }
-
     /**
      * Remove the specified resource from storage.
      *
@@ -137,26 +101,50 @@ class ForumController extends Controller
     public function destroy($id)
     { 
         $forum = Forum::findOrFail($id);
+        $user = $this->getAuthUser();
 
-        try {
-            $user = auth()->userOrFail();
-        } catch (\Tymon\JWTAuth\Exceptions\UserNotDefinedException $e) {
-            return response()->json([
-                'message' => 'Not authenticated, you have to login first',
-            ]);
-        }
-
-           // check ownership
-           if($user->id != $forum->user_id){
-            return response()->json([
-                'message' => 'Not Authorized',
-            ], 403);
-        }
+        // check ownership
+        $this->checkOwnership($user->id, $forum->user_id);
 
         $forum->delete();
 
         return response()->json([
             'message' => 'Successfuly deleted',
-        ], 403);
+        ]);
+    }
+
+    private function validateRequest()
+    {
+        $validator = Validator::make(request()->all(), [
+            'title' => 'required|min:5',
+            'body' => 'required|min:10',
+            'category' => 'required',
+        ]);
+
+        if($validator->fails()) {
+            response()->json($validator->messages(), 422)->send();
+            exit;
+        }
+
+    }
+
+    private function getAuthUser(){
+        try {
+            return auth()->userOrFail();
+        } catch (\Tymon\JWTAuth\Exceptions\UserNotDefinedException $e) {
+            response()->json([
+                'message' => 'Not authenticated, you have to login first',
+            ])->send();
+            exit;
+        }
+    }
+
+    private function checkOwnership($authUser, $owner){
+        if($authUser != $owner){
+            response()->json([
+                'message' => 'Not Authorized',
+            ], 403)->send();
+            exit;
+        }
     }
 }
