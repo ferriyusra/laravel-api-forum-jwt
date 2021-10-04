@@ -15,6 +15,16 @@ trait AuthUserTrait {
             exit;
         }
     }
+
+    private function checkOwnership($owner){
+        $user = $this->getAuthUser();
+        if($user->id != $owner){
+            response()->json([
+                'message' => 'Not Authorized',
+            ], 403)->send();
+            exit;
+        }
+    }
 }
 
 ?>

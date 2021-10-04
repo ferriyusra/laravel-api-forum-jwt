@@ -76,12 +76,11 @@ class ForumController extends Controller
     {
         $this->validateRequest();
 
-        $user = $this->getAuthUser();
         $forum = Forum::findOrFail($id);
 
 
         // check ownership
-       $this->checkOwnership($user->id, $forum->user_id);
+       $this->checkOwnership($forum->user_id);
 
         $forum->update([
                 'title' => request('title'),
@@ -103,10 +102,9 @@ class ForumController extends Controller
     public function destroy($id)
     { 
         $forum = Forum::findOrFail($id);
-        $user = $this->getAuthUser();
 
         // check ownership
-        $this->checkOwnership($user->id, $forum->user_id);
+        $this->checkOwnership($forum->user_id);
 
         $forum->delete();
 
@@ -130,12 +128,5 @@ class ForumController extends Controller
 
     }
 
-    private function checkOwnership($authUser, $owner){
-        if($authUser != $owner){
-            response()->json([
-                'message' => 'Not Authorized',
-            ], 403)->send();
-            exit;
-        }
-    }
+
 }
