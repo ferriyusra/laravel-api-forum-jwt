@@ -128,11 +128,6 @@ class ForumController extends Controller
 
     }
 
-    private function getAuthUser()
-    {
-      
-    }
-
     /**
      * Remove the specified resource from storage.
      *
@@ -140,7 +135,28 @@ class ForumController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function destroy($id)
-    {
-        //
+    { 
+        $forum = Forum::findOrFail($id);
+
+        try {
+            $user = auth()->userOrFail();
+        } catch (\Tymon\JWTAuth\Exceptions\UserNotDefinedException $e) {
+            return response()->json([
+                'message' => 'Not authenticated, you have to login first',
+            ]);
+        }
+
+           // check ownership
+           if($user->id != $forum->user_id){
+            return response()->json([
+                'message' => 'Not Authorized',
+            ], 403);
+        }
+
+        $forum->delete();
+
+        return response()->json([
+            'message' => 'Successfuly deleted',
+        ], 403);
     }
 }
