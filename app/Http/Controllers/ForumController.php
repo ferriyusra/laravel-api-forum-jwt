@@ -34,18 +34,13 @@ class ForumController extends Controller
      */
     public function store(Request $request)
     {
-        $validator = Validator::make(request()->all(), [
-            'title' => 'required|min:5',
-            'body' => 'required|min:10',
-            'category' => 'required',
-        ]);
+        $validator = Validator::make($request->all(), $this->getValidationAttribute());
 
         if($validator->fails()){
             return response()->json(
                 $validator->messages()
             );
         }
-
 
         try {
             $user = auth()->userOrFail();
@@ -88,7 +83,54 @@ class ForumController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        $validator = Validator::make($request->all(), $this->getValidationAttribute());
+
+        if($validator->fails()){
+            return response()->json(
+                $validator->messages()
+            );
+        }
+
+        try {
+            $user = auth()->userOrFail();
+        } catch (\Tymon\JWTAuth\Exceptions\UserNotDefinedException $e) {
+            return response()->json([
+                'message' => 'Not authenticated, you have to login first',
+            ]);
+        }
+
+        $forum = Forum::findOrFail($id);
+        // check ownership
+        if($user->id != $forum->user_id){
+            return response()->json([
+                'message' => 'Not Authorized',
+            ], 403);
+        }
+
+        $forum->update([
+                'title' => request('title'),
+                'body' => request('body'),
+                'category' => request('category'),
+        ]);
+
+        return response()->json([
+            'message' => 'Successfuly updated',
+        ]);
+    }
+
+    private function getValidationAttribute()
+    {
+        return [
+            'title' => 'required|min:5',
+            'body' => 'required|min:10',
+            'category' => 'required',
+        ];
+
+    }
+
+    private function getAuthUser()
+    {
+      
     }
 
     /**
