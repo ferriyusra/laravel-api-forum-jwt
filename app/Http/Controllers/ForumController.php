@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Forum;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -22,7 +23,7 @@ class ForumController extends Controller
     
     public function index()
     {
-        //
+        return Forum::with(['user:id,username'])->get();
     }
 
     /**
@@ -75,7 +76,7 @@ class ForumController extends Controller
      */
     public function show($id)
     {
-        //
+        return Forum::with(['user:id,username'])->findOrFail($id);
     }
 
     /**
