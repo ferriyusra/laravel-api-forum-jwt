@@ -26,5 +26,6 @@ Route::group(['middleware' => 'api'], function ($router){
     });
 
     Route::apiResource('forums', 'ForumController');
+    Route::apiResource('forums.comments', 'ForumCommentController');
 
 });

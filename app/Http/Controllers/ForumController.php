@@ -7,9 +7,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\AuthUserTrait;
 
 class ForumController extends Controller
 {
+    use AuthUserTrait;
     public function __construct()
     {
         return auth()->shouldUse('api');
@@ -60,7 +62,7 @@ class ForumController extends Controller
      */
     public function show($id)
     {
-        return Forum::with(['user:id,username'])->findOrFail($id);
+        return Forum::with(['user:id,username', 'comments.user:id,username'])->findOrFail($id);
     }
 
     /**
@@ -126,17 +128,6 @@ class ForumController extends Controller
             exit;
         }
 
-    }
-
-    private function getAuthUser(){
-        try {
-            return auth()->userOrFail();
-        } catch (\Tymon\JWTAuth\Exceptions\UserNotDefinedException $e) {
-            response()->json([
-                'message' => 'Not authenticated, you have to login first',
-            ])->send();
-            exit;
-        }
     }
 
     private function checkOwnership($authUser, $owner){
