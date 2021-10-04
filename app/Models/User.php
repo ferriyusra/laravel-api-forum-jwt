@@ -9,8 +9,9 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use App\Models\Forum;
 use App\Models\ForumComment;
+use Tymon\JWTAuth\Contracts\JWTSubject;
 
-class User extends Authenticatable
+class User extends Authenticatable implements JWTSubject
 {
     use HasApiTokens, HasFactory, Notifiable;
 
@@ -48,9 +49,20 @@ class User extends Authenticatable
         // satu user bisa punya banyak forum
         return $this->hasMany(Forum::class);
     }
+
     public function forumComments(){
         // satu user bisa punya banyak komentar
         return $this->hasMany(ForumComment::class);
+    }
+
+    public function getJWTIdentifier()
+    {
+        return $this->getKey();
+    }
+
+    public function getJWTCustomClaims()
+    {
+        return [];
     }
 
 }
