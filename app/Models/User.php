@@ -47,12 +47,12 @@ class User extends Authenticatable implements JWTSubject
 
     public function forums(){
         // satu user bisa punya banyak forum
-        return $this->hasMany(Forum::class);
+        return $this->hasMany(Forum::class)->orderBy('id', 'desc');
     }
 
     public function forumComments(){
         // satu user bisa punya banyak komentar
-        return $this->hasMany(ForumComment::class);
+        return $this->hasMany(ForumComment::class)->orderBy('id', 'desc');
     }
 
     public function getJWTIdentifier()
