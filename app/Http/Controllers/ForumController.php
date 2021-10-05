@@ -71,6 +71,13 @@ class ForumController extends Controller
             )->findOrFail($id));
     }
 
+    public function filterCategory($category)
+    {
+        return ForumResource::collection(
+            Forum::with('user')->where('category', $category)->paginate(3)
+        );
+    }
+
     /**
      * Update the specified resource in storage.
      *
