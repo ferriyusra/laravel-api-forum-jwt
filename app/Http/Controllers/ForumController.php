@@ -9,6 +9,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\AuthUserTrait;
 use App\Http\Resources\ForumResource;
+use App\Http\Resources\ForumsResource;
 
 class ForumController extends Controller
 {
@@ -27,9 +28,11 @@ class ForumController extends Controller
     public function index()
     {
         // dikarenakan lebih dari satu data yg diambil kita gunakan collection()
-        return ForumResource::collection(
-            Forum::with('user')->paginate(3)
+        return ForumsResource::collection(
+            Forum::with('user')->withCount('comments')->paginate(3)
         );
+        // forumsResource untuk lebih banyak
+        // forumResource untuk 1 data
     }
 
     /**
