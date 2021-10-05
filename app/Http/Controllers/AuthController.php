@@ -70,7 +70,9 @@ class AuthController extends Controller
         //Tymon\JWTAuth\Exceptions\JWTException
             //error no token send
         
-        return $this->respondWithToken(auth()->refresh());
+        return $this->respondWithToken(auth()->refresh(true, true));
+        // true pertama untuk token pertama di blacklist
+        // true kedua untuk refresh token kedua
     }
 
     /**
